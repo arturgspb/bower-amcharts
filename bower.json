@@ -1,6 +1,6 @@
 {
 	"name": "amcharts",
-	"version": "3.4.6.free",
+	"version": "3.4.6",
 	"main": "./dist/amcharts/amcharts.js",
 	"dependencies": {
 	}
