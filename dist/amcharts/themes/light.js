@@ -1,14 +1,12 @@
 AmCharts.themes.light = {
 
+	themeName:"light",
+
 	AmChart: {
-		color: "#000000"
+		color: "#000000", backgroundColor: "#FFFFFF"
 	},
 
 	AmCoordinateChart: {
-		colors: ["#67b7dc", "#fdd400", "#84b761", "#cc4748", "#cd82ad", "#2f4074", "#448e4d", "#b7b83f", "#b9783f", "#b93e3d", "#913167"]
-	},
-
-	AmSlicedChart: {
 		colors: ["#67b7dc", "#fdd400", "#84b761", "#cc4748", "#cd82ad", "#2f4074", "#448e4d", "#b7b83f", "#b9783f", "#b93e3d", "#913167"]
 	},
 
@@ -17,6 +15,7 @@ AmCharts.themes.light = {
 	},
 
 	AmSlicedChart: {
+		colors: ["#67b7dc", "#fdd400", "#84b761", "#cc4748", "#cd82ad", "#2f4074", "#448e4d", "#b7b83f", "#b9783f", "#b93e3d", "#913167"],
 		outlineAlpha: 1,
 		outlineThickness: 2,
 		labelTickColor: "#000000",
