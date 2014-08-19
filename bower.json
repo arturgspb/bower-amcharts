@@ -1,7 +1,5 @@
 {
-        "name": "amcharts",
-        "version": "3.10.0",
-        "main": "./dist/amcharts/amcharts.js",
-        "dependencies": {
-        }
+    "name": "amcharts",
+    "version": "3.10.3",
+    "main": "./dist/amcharts/amcharts.js"
 }
