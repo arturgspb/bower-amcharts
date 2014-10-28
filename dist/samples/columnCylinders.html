@@ -14,43 +14,63 @@
             var chartData = [
                 {
                     "country": "USA",
-                    "visits": 4025,
-                    "pattern": {"url":"../amcharts/patterns/black/pattern21.png", "width":4, "height":4, "color":"#CC0000"}
+                    "visits": 3025,
+                    "color": "#FF0F00"
                 },
                 {
                     "country": "China",
                     "visits": 1882,
-                    "pattern": {"url":"../amcharts/patterns/black/pattern20.png", "width":4, "height":4}
+                    "color": "#FF6600"
                 },
                 {
                     "country": "Japan",
                     "visits": 1809,
-                    "pattern": {"url":"../amcharts/patterns/black/pattern19.png", "width":4, "height":4}
+                    "color": "#FF9E01"
                 },
                 {
                     "country": "Germany",
                     "visits": 1322,
-                    "pattern": {"url":"../amcharts/patterns/black/pattern18.png", "width":4, "height":4}
+                    "color": "#FCD202"
                 },
                 {
                     "country": "UK",
                     "visits": 1122,
-                    "pattern": {"url":"../amcharts/patterns/black/pattern17.png", "width":4, "height":4}
+                    "color": "#F8FF01"
                 },
                 {
                     "country": "France",
                     "visits": 1114,
-                    "pattern": {"url":"../amcharts/patterns/black/pattern16.png", "width":4, "height":4}
+                    "color": "#B0DE09"
                 },
                 {
                     "country": "India",
                     "visits": 984,
-                    "pattern": {"url":"../amcharts/patterns/black/pattern15.png", "width":4, "height":4}
+                    "color": "#04D215"
                 },
                 {
                     "country": "Spain",
                     "visits": 711,
-                    "pattern": {"url":"../amcharts/patterns/black/pattern14.png", "width":4, "height":4}
+                    "color": "#0D8ECF"
+                },
+                {
+                    "country": "Netherlands",
+                    "visits": 665,
+                    "color": "#0D52D1"
+                },
+                {
+                    "country": "Russia",
+                    "visits": 580,
+                    "color": "#2A0CD0"
+                },
+                {
+                    "country": "South Korea",
+                    "visits": 443,
+                    "color": "#8A0CCF"
+                },
+                {
+                    "country": "Canada",
+                    "visits": 441,
+                    "color": "#CD0D74"
                 }
             ];
 
@@ -60,6 +80,10 @@
                 chart = new AmCharts.AmSerialChart();
                 chart.dataProvider = chartData;
                 chart.categoryField = "country";
+                chart.startDuration = 1;
+                chart.depth3D = 50;
+                chart.angle = 30;
+                chart.marginRight = -45;
 
                 // AXES
                 // category
@@ -77,12 +101,13 @@
                 // GRAPH
                 var graph = new AmCharts.AmGraph();
                 graph.valueField = "visits";
-                graph.balloonText = "[[category]]: <b>[[value]]</b>";
+                graph.colorField = "color";
+                graph.balloonText = "<b>[[category]]: [[value]]</b>";
                 graph.type = "column";
-                graph.lineAlpha = 0;
-                graph.lineColor = "#000000";
-                graph.fillAlphas = 0.8;
-                graph.patternField = "pattern";
+                graph.lineAlpha = 0.5;
+                graph.lineColor = "#FFFFFF";
+                graph.topRadius = 1;
+                graph.fillAlphas = 0.9;
                 chart.addGraph(graph);
 
                 // CURSOR
@@ -90,10 +115,14 @@
                 chartCursor.cursorAlpha = 0;
                 chartCursor.zoomable = false;
                 chartCursor.categoryBalloonEnabled = false;
+                chartCursor.valueLineEnabled = true;
+                chartCursor.valueLineBalloonEnabled = true;
+                chartCursor.valueLineAlpha = 1;
                 chart.addChartCursor(chartCursor);
 
                 chart.creditsPosition = "top-right";
 
+                // WRITE
                 chart.write("chartdiv");
             });
         </script>
