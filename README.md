@@ -1,4 +1,4 @@
-# bower-amchats
+# bower-amcharts
 
 This repo is for distribution on `bower`. The source for this module is in the
 [AmCharts](http://www.amcharts.com).
