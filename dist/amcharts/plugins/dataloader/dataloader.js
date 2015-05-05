@@ -2,7 +2,7 @@
 Plugin Name: amCharts Data Loader
 Description: This plugin adds external data loading capabilities to all amCharts libraries.
 Author: Martynas Majeris, amCharts
-Version: 0.9.1
+Version: 1.0.2
 Author URI: http://www.amcharts.com/
 
 Copyright 2015 amCharts
@@ -25,11 +25,18 @@ not apply to any other amCharts products that are covered by different licenses.
 
 /**
  * TODO:
- * publicly accessible methods
  * incremental load
  * XML support (?)
  */
 
+/**
+ * Initialize language prompt container
+ */
+AmCharts.translations.dataLoader = {}
+
+/**
+ * Set init handler
+ */
 AmCharts.addInitHandler( function ( chart ) {
 
   /**
@@ -67,7 +74,9 @@ AmCharts.addInitHandler( function ( chart ) {
     'skip':           0,
     'useColumnNames': false,
     'reverse':        false,
-    'reloading':      false
+    'reloading':      false,
+    'complete':       false,
+    'error':          false
   };
 
   /**
@@ -85,7 +94,7 @@ AmCharts.addInitHandler( function ( chart ) {
       }
 
       // cycle through all of the data sets
-      for ( var x in chart.dataSets ) {
+      for ( var x = 0; x < chart.dataSets.length; x++ ) {
         var ds = chart.dataSets[ x ];
 
         // load data
@@ -144,25 +153,16 @@ AmCharts.addInitHandler( function ( chart ) {
     // increment loader count
     l.remaining++;
 
-    // create the request
-    if ( window.XMLHttpRequest ) {
-      // IE7+, Firefox, Chrome, Opera, Safari
-      var request = new XMLHttpRequest();
-    } else {
-      // code for IE6, IE5
-      var request = new ActiveXObject( 'Microsoft.XMLHTTP' );
-    }
+    // load the file
+    AmCharts.loadFile( url, options, function ( response ) {
 
-    // set handler for data if async loading
-    request.onreadystatechange = function () {
-      
-      if ( 4 == request.readyState && 404 == request.status ) {
-
-        raiseError( __( 'Error loading the file' ) + ': ' + url, false, options );
-
+      // error?
+      if ( false === response ) {
+        callFunction( options.error, url, options );
+        raiseError( AmCharts.__( 'Error loading the file', chart.language ) + ': ' + url, false, options );
       }
-      else if ( 4 == request.readyState && 200 == request.status ) {
-        
+      else {
+
         // determine the format
         if ( undefined === options.format ) {
           // TODO
@@ -176,15 +176,43 @@ AmCharts.addInitHandler( function ( chart ) {
         switch( options.format ) {
           
           case 'json':
-            holder[providerKey] = postprocess( parseJSON( request.responseText, options ), options );
+            
+            holder[providerKey] = AmCharts.parseJSON( response, options );
+            
+            if ( false === holder[providerKey] ) {
+              callFunction( options.error, options );
+              raiseError( AmCharts.__( 'Error parsing JSON file', chart.language ) + ': ' + l.url, false, options );
+              holder[providerKey] = [];
+              return;
+            }
+            else {
+              holder[providerKey] = postprocess( holder[providerKey], options );
+              callFunction( options.load, options );
+            }
+
             break;
 
           case 'csv':
-            holder[providerKey] = postprocess( parseCSV( request.responseText, options ), options );
+            
+            holder[providerKey] = AmCharts.parseCSV( response, options );
+            
+            if ( false === holder[providerKey] ) {
+              callFunction( options.error, options );
+              raiseError( AmCharts.__( 'Error parsing CSV file', chart.language ) + ': ' + l.url, false, options );
+              holder[providerKey] = [];
+              return;
+            }
+            else {
+              holder[providerKey] = postprocess( holder[providerKey], options );
+              callFunction( options.load, options );
+            }
+
             break;
 
           default:
-            raiseError( __( 'Unsupported data format' ) + ': ' + options.format, e, options.noStyles );
+            callFunction( options.error, options );
+            raiseError( AmCharts.__( 'Unsupported data format', chart.language ) + ': ' + options.format, false, options.noStyles );
+            return;
             break;
         }
 
@@ -193,6 +221,9 @@ AmCharts.addInitHandler( function ( chart ) {
 
         // we done?
         if ( 0 === l.remaining ) {
+
+          // callback
+          callFunction( options.complete );
 
           // take in the new data
           if ( options.async ) {
@@ -208,7 +239,7 @@ AmCharts.addInitHandler( function ( chart ) {
               if ( l.startDuration ) {
                 if ( 'stock' === chart.type ) {
                   chart.panelsSettings.startDuration = l.startDuration;
-                  for ( var x in chart.panels ) {
+                  for ( var x = 0; x < chart.panels.length; x++ ) {
                     chart.panels[x].startDuration = l.startDuration;
                     chart.panels[x].animateAgain();
                   }
@@ -239,72 +270,11 @@ AmCharts.addInitHandler( function ( chart ) {
           options.reloading = true;
 
         }
+
       }
-    }
 
-    // load the file
-    try {
-      request.open( 'GET', options.timestamp ? timestampUrl( url ) : url, options.async );
-      request.send();
-    }
-    catch ( e ) {
-      raiseError( __( 'Error loading the file' ) + ': ' + url, e, options );
-    }
-
-  };
-
-  /**
-   * Parses JSON and returns it
-   */
-  function parseJSON ( response, options ) {
-    try {
-      if ( undefined !== JSON )
-        return JSON.parse( response );
-      else
-        return eval( response );
-    }
-    catch ( e ) {
-      raiseError( __( 'Error parsing JSON file' ) + ': ' + l.url, e, options );
-      return [];
-    }
-  }
-
-  /**
-   * Parses CSV and returns it
-   */
-  function parseCSV ( response, options ) {
-    
-    // parse CSV into array
-    var data = CSVToArray( response, options.delimiter );
-
-    // init resuling array
-    var res = [];
-    var cols = [];
-    
-    // first row holds column names?
-    if ( options.useColumnNames ) {
-      cols = data.shift();
-
-      if ( 0 < options.skip )
-        options.skip--;
-    }
-
-    // skip rows
-    for ( var i = 0; i < options.skip; i++ )
-      data.shift();
-
-    // iterate through the result set
-    var row;
-    while ( row = options.reverse ? data.pop() : data.shift() ) {
-      var dataPoint = {};
-      for ( var i = 0; i < row.length; i++ ) {
-        var col = undefined === cols[ i ] ? 'col' + i : cols[ i ];
-        dataPoint[ col ] = row[ i ];
-      }
-      res.push( dataPoint );
-    }
-
-    return res;
+    } );
+  
   }
 
   /**
@@ -316,7 +286,7 @@ AmCharts.addInitHandler( function ( chart ) {
         return options.postProcess.call( this, data, options );
       }
       catch ( e ) {
-        raiseError( __( 'Error loading file' ) + ': ' + options.url, false, options );
+        raiseError( AmCharts.__( 'Error loading file', chart.language ) + ': ' + options.url, false, options );
         return data;
       }
     else
@@ -348,7 +318,7 @@ AmCharts.addInitHandler( function ( chart ) {
    * Applies defaults to config object
    */
   function applyDefaults ( obj ) {
-    for ( var x in defaults ) {
+    for ( var x = 0; x < defaults.length; x++ ) {
       setDefault( obj, x, defaults[ x ] );
     }
   }
@@ -376,19 +346,6 @@ AmCharts.addInitHandler( function ( chart ) {
   }
 
   /**
-   * Returns prompt in a chart language (set by chart.language) if it is
-   * available
-   */
-  function __( msg ) {
-    if ( undefined !== chart.language 
-      && undefined !== AmCharts.translations.dataLoader[ chart.language ] 
-      && undefined !== AmCharts.translations.dataLoader[ chart.language ][ msg ] )
-      return AmCharts.translations.dataLoader[ chart.language ][ msg ];
-    else
-      return msg;
-  }
-
-  /**
    * Shows curtain over chart area
    */
   function showCurtain ( msg, noStyles ) {
@@ -398,7 +355,7 @@ AmCharts.addInitHandler( function ( chart ) {
 
     // did we pass in the message?
     if ( undefined === msg )
-      msg = __( 'Loading data...' );
+      msg = AmCharts.__( 'Loading data...', chart.language );
 
     // create and populate curtain element
     var curtain =document.createElement( 'div' );
@@ -442,102 +399,227 @@ AmCharts.addInitHandler( function ( chart ) {
   }
 
   /**
-   * Appends timestamp to the url
+   * Execute callback function
    */
-  function timestampUrl ( url ) {
-    var p = url.split( '?' );
-    if ( 1 === p.length )
-      p[1] = new Date().getTime();
-    else
-      p[1] += '&' + new Date().getTime();
-    return p.join( '?' );
+  function callFunction ( func, param1, param2 ) {
+    if ( 'function' === typeof func )
+      func.call( l, param1, param2 );
   }
 
-  /**
-   * Parses CSV data into array
-   * Taken from here: (thanks!)
-   * http://www.bennadel.com/blog/1504-ask-ben-parsing-csv-strings-with-javascript-exec-regular-expression-command.htm
-   */
-  function CSVToArray( strData, strDelimiter ){
-    // Check to see if the delimiter is defined. If not,
-    // then default to comma.
-    strDelimiter = (strDelimiter || ",");
-
-    // Create a regular expression to parse the CSV values.
-    var objPattern = new RegExp(
-      (
-          // Delimiters.
-          "(\\" + strDelimiter + "|\\r?\\n|\\r|^)" +
-
-          // Quoted fields.
-          "(?:\"([^\"]*(?:\"\"[^\"]*)*)\"|" +
-
-          // Standard fields.
-          "([^\"\\" + strDelimiter + "\\r\\n]*))"
-      ),
-      "gi"
-      );
+}, [ 'pie', 'serial', 'xy', 'funnel', 'radar', 'gauge', 'gantt', 'stock', 'map' ] );
 
 
-    // Create an array to hold our data. Give the array
-    // a default empty first row.
-    var arrData = [[]];
+/**
+ * Returns prompt in a chart language (set by chart.language) if it is
+ * available
+ */
+if ( undefined === AmCharts.__ ) {
+  AmCharts.__ = function ( msg, language ) {
+    if ( undefined !== language 
+      && undefined !== AmCharts.translations.dataLoader[ chart.language ] 
+      && undefined !== AmCharts.translations.dataLoader[ chart.language ][ msg ] )
+      return AmCharts.translations.dataLoader[ chart.language ][ msg ];
+    else
+      return msg;
+  }
+}
 
-    // Create an array to hold our individual pattern
-    // matching groups.
-    var arrMatches = null;
+/**
+ * Loads a file from url and calls function handler with the result
+ */
+AmCharts.loadFile = function ( url, options, handler ) {
 
+  // create the request
+  if ( window.XMLHttpRequest ) {
+    // IE7+, Firefox, Chrome, Opera, Safari
+    var request = new XMLHttpRequest();
+  } else {
+    // code for IE6, IE5
+    var request = new ActiveXObject( 'Microsoft.XMLHTTP' );
+  }
 
-    // Keep looping over the regular expression matches
-    // until we can no longer find a match.
-    while (arrMatches = objPattern.exec( strData )){
+  // set handler for data if async loading
+  request.onreadystatechange = function () {
+    
+    if ( 4 == request.readyState && 404 == request.status )
+      handler.call( this, false );
 
-      // Get the delimiter that was found.
-      var strMatchedDelimiter = arrMatches[ 1 ];
+    else if ( 4 == request.readyState && 200 == request.status )
+      handler.call( this, request.responseText );
 
-      // Check to see if the given delimiter has a length
-      // (is not the start of string) and if it matches
-      // field delimiter. If id does not, then we know
-      // that this delimiter is a row delimiter.
-      if (
-          strMatchedDelimiter.length &&
-          (strMatchedDelimiter != strDelimiter)
-          ){
+  }
 
-          // Since we have reached a new row of data,
-          // add an empty row to our data array.
-          arrData.push( [] );
+  // load the file
+  try {
+    request.open( 'GET', options.timestamp ? AmCharts.timestampUrl( url ) : url, options.async );
+    request.send();
+  }
+  catch ( e ) {
+    handler.call( this, false );
+  }
 
-      }
+};
 
+/**
+ * Parses JSON string into an object
+ */
+AmCharts.parseJSON = function ( response, options ) {
+  try {
+    if ( undefined !== JSON )
+      return JSON.parse( response );
+    else
+      return eval( response );
+  }
+  catch ( e ) {
+    return false;
+  }
+}
 
-      // Now that we have our delimiter out of the way,
-      // let's check to see which kind of value we
-      // captured (quoted or unquoted).
-      if (arrMatches[ 2 ]){
+/**
+ * Prases CSV string into an object
+ */
+AmCharts.parseCSV = function ( response, options ) {
+  
+  // parse CSV into array
+  var data = AmCharts.CSVToArray( response, options.delimiter );
 
-          // We found a quoted value. When we capture
-          // this value, unescape any double quotes.
-          var strMatchedValue = arrMatches[ 2 ].replace(
-              new RegExp( "\"\"", "g" ),
-              "\""
-              );
+  // init resuling array
+  var res = [];
+  var cols = [];
+  
+  // first row holds column names?
+  if ( options.useColumnNames ) {
+    cols = data.shift();
 
-      } else {
+    // normalize column names
+    for ( var x = 0; x < cols.length; x++ ) {
+      // trim
+      var col = cols[ x ].replace( /^\s+|\s+$/gm, '' );
 
-          // We found a non-quoted value.
-          var strMatchedValue = arrMatches[ 3 ];
+      // check for empty
+      if ( '' === col )
+        col = 'col' + x;
 
-      }
-
-
-      // Now that we have our value string, let's add
-      // it to the data array.
-      arrData[ arrData.length - 1 ].push( strMatchedValue );
+      cols[ x ] = col;
     }
 
-    // Return the parsed data.
-    return( arrData );
+    if ( 0 < options.skip )
+      options.skip--;
   }
 
-}, [ 'pie', 'serial', 'xy', 'funnel', 'radar', 'gauge', 'stock', 'map' ] );
+  // skip rows
+  for ( var i = 0; i < options.skip; i++ )
+    data.shift();
+
+  // iterate through the result set
+  var row;
+  while ( row = options.reverse ? data.pop() : data.shift() ) {
+    var dataPoint = {};
+    for ( var i = 0; i < row.length; i++ ) {
+      var col = undefined === cols[ i ] ? 'col' + i : cols[ i ];
+      dataPoint[ col ] = row[ i ];
+    }
+    res.push( dataPoint );
+  }
+
+  return res;
+}
+
+/**
+ * Parses CSV data into array
+ * Taken from here: (thanks!)
+ * http://www.bennadel.com/blog/1504-ask-ben-parsing-csv-strings-with-javascript-exec-regular-expression-command.htm
+ */
+AmCharts.CSVToArray = function ( strData, strDelimiter ){
+  // Check to see if the delimiter is defined. If not,
+  // then default to comma.
+  strDelimiter = (strDelimiter || ",");
+
+  // Create a regular expression to parse the CSV values.
+  var objPattern = new RegExp(
+    (
+        // Delimiters.
+        "(\\" + strDelimiter + "|\\r?\\n|\\r|^)" +
+
+        // Quoted fields.
+        "(?:\"([^\"]*(?:\"\"[^\"]*)*)\"|" +
+
+        // Standard fields.
+        "([^\"\\" + strDelimiter + "\\r\\n]*))"
+    ),
+    "gi"
+    );
+
+
+  // Create an array to hold our data. Give the array
+  // a default empty first row.
+  var arrData = [[]];
+
+  // Create an array to hold our individual pattern
+  // matching groups.
+  var arrMatches = null;
+
+
+  // Keep looping over the regular expression matches
+  // until we can no longer find a match.
+  while (arrMatches = objPattern.exec( strData )){
+
+    // Get the delimiter that was found.
+    var strMatchedDelimiter = arrMatches[ 1 ];
+
+    // Check to see if the given delimiter has a length
+    // (is not the start of string) and if it matches
+    // field delimiter. If id does not, then we know
+    // that this delimiter is a row delimiter.
+    if (
+        strMatchedDelimiter.length &&
+        (strMatchedDelimiter != strDelimiter)
+        ){
+
+        // Since we have reached a new row of data,
+        // add an empty row to our data array.
+        arrData.push( [] );
+
+    }
+
+
+    // Now that we have our delimiter out of the way,
+    // let's check to see which kind of value we
+    // captured (quoted or unquoted).
+    if (arrMatches[ 2 ]){
+
+        // We found a quoted value. When we capture
+        // this value, unescape any double quotes.
+        var strMatchedValue = arrMatches[ 2 ].replace(
+            new RegExp( "\"\"", "g" ),
+            "\""
+            );
+
+    } else {
+
+        // We found a non-quoted value.
+        var strMatchedValue = arrMatches[ 3 ];
+
+    }
+
+
+    // Now that we have our value string, let's add
+    // it to the data array.
+    arrData[ arrData.length - 1 ].push( strMatchedValue );
+  }
+
+  // Return the parsed data.
+  return( arrData );
+}
+
+/**
+ * Appends timestamp to the url
+ */
+AmCharts.timestampUrl = function ( url ) {
+  var p = url.split( '?' );
+  if ( 1 === p.length )
+    p[1] = new Date().getTime();
+  else
+    p[1] += '&' + new Date().getTime();
+  return p.join( '?' );
+}

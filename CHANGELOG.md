@@ -1,5 +1,12 @@
 # JavaScript Charts and Stock Chart Change Log
 
+## 3.14.1
+
+*   Code cleanup and performance tuning.
+*   Export plugin updated.
+*   adjustPrecision property added to AmPieChart (default is false). Sometimes, because of a rounding, percent of a sum of all slices is not equal to 100%. If you set this to true, when this case happens, number of decimals will be increased so that sum would become 100%.
+
+
 ## 3.13.0
 
 Change log will be available soon. We made a lot of nice features, including plugin which makes chars fully responsive. Meanwhile take a look at this [SVG filters demo](http://www.amcharts.com/demos/using-svg-filters/)!
