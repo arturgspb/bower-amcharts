@@ -1,5 +1,13 @@
 # JavaScript Charts and Stock Chart Change Log
 
+## 3.14.2
+
+*    autoResize property added to AmChart and AmStockChart to stop the chart from resizing whenever it’s parent container size changes.
+*    path property added to AmChart and AmStockChart. We recommend using this property instead of pathToImages.
+*    IMPORTANT: path property, if set will also be pre-pended to non-absolute pattern URLs. This may change the behavior if you use patterns (directly in chart config or theme) with URLs that do not start with protocol or slash)
+*    Bug fix: AmCharts.clear() method was not working properly with more than one chart on page.
+
+
 ## 3.14.1
 
 *   Code cleanup and performance tuning.
