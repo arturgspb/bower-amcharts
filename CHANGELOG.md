@@ -1,5 +1,12 @@
 # JavaScript Charts and Stock Chart Change Log
 
+## 3.14.3
+
+*    Chart automatically detects path (chart.path variable) to images and other files if amcharts.js or ammap.js file is included as <script> in the document source.
+*    Bug fix: click on columns.bullet was not registered if valueLineEnabled was set to true on ChartCursor.
+*    Bug fix: chart scrollbar could be messed up if graph.baseValue was set.
+
+
 ## 3.14.2
 
 *    autoResize property added to AmChart and AmStockChart to stop the chart from resizing whenever it’s parent container size changes.
