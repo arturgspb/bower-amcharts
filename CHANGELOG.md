@@ -1,5 +1,18 @@
 # JavaScript Charts and Stock Chart Change Log
 
+
+## 3.14.5
+
+*    oppositeAxis property added to ChartScrollbar, with default value true. By default, scrollbar is in the opposite side of plot area from the axis. If you set this property to false, scrollbar will be placed next to category/value axis. However it won’t adjust it’s position to accommodate axis labels, so you might need to use offset property to move scrollbar away from the labels.
+*    columnWidthField added to AmGanttChart. Allows to specify individual column width for each segment.
+*    disableMouseEvents with default value true added to AmBalloon. Helpful in case you have fixed balloon position with some links in the balloon. You should set value of this property to false in order for links in the balloon to be clickable.
+*    minorTickLength added to AxisBase. Allows to set length of ticks for minor grid lines (if they are enabled).
+*    segmentData added to AmGraph. Works with AmGanttChart only and holds reference to original segment object from data provider.
+*    rollOverBand, rollOutBand and clickBand events added to GaugeAxis.
+*    url property added to GaugeBand.
+*    Bug fix: margins of XY chart were not updated after chart.validateData() call.
+
+
 ## 3.14.3
 
 *    Chart automatically detects path (chart.path variable) to images and other files if amcharts.js or ammap.js file is included as <script> in the document source.
