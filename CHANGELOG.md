@@ -1,5 +1,44 @@
 # JavaScript Charts and Stock Chart Change Log
 
+## 3.15.0
+
+
+*    Trend lines now support images. You can have image on both end and start of a trend line. It can be GIF, PNG or SVG (SVG won’t be visible on IE8) images. initialImage and finalImage properties and Image class were added to support this feature.
+*    Annotation capabilities of the Export plugin were dramatically enhanced with the ability to add text, shapes, lines and arrows, as well as changing of opacity of items. More info.
+    You can add event listeners in JSON chart config now, for example:
+    “chartCursor”:{
+    “listeners”:[{“event”:”changed”, “method”:handleCursorChange},{“event”:”onHideCursor”, “method”:handleCursorHide}]
+    }
+*    categoryBalloonText property with default value [[category]] added to ChartCursor. You can have [[toCategory]] tag in there and show category ranges this way.
+*    autoWrap now works with vertical CategoryAxis. You should set chart.autoMargins = false or categoryAxis.ignoreAxisWidth = true in order this to work. You might also need to adjust margin to give labels some space.
+*    labelRotation, autoRotateCount and autoRotateAngle now work with ValueAxis (when chart is rotated).
+*    titleRotation property added to AxisBase. Sets rotation angle of the axis title.
+*    autoWrap now works with date-based category axes.
+*    onePanelOnly property added to ChartCursorSettings. If you set it to true, Stock Chart will display cursor and value balloons on currently hovered panel only.
+*    top and bottom options added to showBalloonAt property of AmGraph. Balloon will be glued to the top/bottom of plot area if you set one of these.
+*    pointPosition property added to ValueAxis, default value is “axis”. Alternative value is “middle”. Works with radar charts only. If you set it to “middle”, labels and data points will be placed in the middle between axes. (demo coming)
+*    showZeroSlices property added to AmSlicedChart. Default value is false. If you set it to true, the chart will display outlines (if visible) and labels for slices even if their value is 0.
+*    “AbsHigh” option added for periodValue property of StockGraph. When data is grouped to longer periods, the graph will show highest absolute value (positive or negative).
+*    compareGraph property added to StockGraph. This allows you to set any of AmGraph properties on compared graphs instead of using old-style properties like compareGraphBulletBorderThickness. For example:
+    stockGraph.compareGraph = {“bulletBorderThickness”:2, “lineAlpha”:0.4}.
+*    If you change graph’s line color using lineColorField, balloon now respects this color and adjusts it’s fill or border color.
+*    Title of a chart now auto-wraps if container size is smaller than title itself.
+*    Mouse position detection mechanism updated. It is now compatible with CSS3 translate transform (rotation is not yet solved).
+*    Radar chart supports date-based data now.
+*    Compared graphs of Stock charts ids used to be unpredictable, now they are formed like this: “comparedGraph_” + stockGraph.id + “_” + dataSet.id
+*    Bug fix: word-wrapping problems fixed.
+*    Bug fix: pie chart with non-default startAngle could not solve label overlapping in some cases.
+*    Bug fix: 3D pie chart with startAngle = 270 was placing slices at incorrect z-indices.
+*    Bug fix: Stock chart’s grouping to periods with alwaysGroup set to true was not working properly in some cases.
+*    Bug fix: the chart could be rendered incorrectly if display style of a container div changed from “none” to “block”
+*    Bug fix: legend was missing space between entries and right border.
+*    Bug fix: stacked graphs of radar chart were filled to the chart center instead of the graph.
+*    Bug fix: radar chart’s axis title was not positioned properly.
+*    Bug fix: pie chart’s labels could get under slices in some cases.
+*    Bug fix: minimumDate and maximumDate properties of ValueAxis did not accepted dates as strings, even if chart.dataDateFormat was set.
+*    Bug fix: 3D pie with big depth3D was not rendered correctly.
+*    Bug fix: null values were converted to 0 when parsing data.
+
 
 ## 3.14.5
 
