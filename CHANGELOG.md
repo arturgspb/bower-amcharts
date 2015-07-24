@@ -1,5 +1,16 @@
 # JavaScript Charts and Stock Chart Change Log
 
+## 3.15.1
+
+
+*    New feature which allowed to add listeners in JSON config was not working properly in some cases.
+*    centerLabels property added to AxisBase. It always force-centers labels of date-based axis (equalSpacing must not be set to true).
+*    Radar chart’s fills were drawn incorrectly if connect was set to false and some data was missing.
+*    Pie chart could move a pixel back and forward when data was validated and chart redrawn.
+*    Using fields for graph of Gantt chart was not always working properly.
+*    Wrapping function improved.
+
+
 ## 3.15.0
 
 
