@@ -1,5 +1,14 @@
 # JavaScript Charts and Stock Chart Change Log
 
+## 3.15.2
+
+
+*    Bug in new Microsoft Edge browser caused category labels and some other texts to disappear. The problem was fixed and the bug reported.
+*    Bug fix: Gantt chart used to zoom to wrong dates if minimum/maximum was set.
+*    Bug fix: Data labels were not being placed correctly for column charts with reversed value axis.
+*    includeAllValues property added to ValueAxis. If you set it to true, minimum and maximum of value axis will not change while zooming/scrolling.
+
+
 ## 3.15.1
 
 
