@@ -77,7 +77,7 @@ AmCharts.themes.patterns = {
 	AmRectangularChart: {
 		zoomOutButtonColor: '#000000',
 		zoomOutButtonRollOverAlpha: 0.15,
-		zoomOutButtonImage: "lens.png"
+		zoomOutButtonImage: "lens"
 	},
 
 
@@ -185,10 +185,7 @@ AmCharts.themes.patterns = {
 	ZoomControl: {
 		buttonRollOverColor: "#3c5bdc",
 		buttonFillColor: "#f15135",
-		buttonFillAlpha: 0.8,
-		buttonBorderColor: "#000000",
-		gridBackgroundColor: "#000000",
-		gridAlpha: 0.8
+		buttonFillAlpha: 0.8
 	},
 
 	SmallMap: {

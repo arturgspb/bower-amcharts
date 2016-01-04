@@ -1,6 +1,6 @@
 # amCharts Export
 
-Version: 1.2.8
+Version: 1.4.9
 
 
 ## Description
@@ -135,13 +135,16 @@ pdfMake | {} | Overwrites the default settings for PDF export (pdfMake library)
 position | top-right | A position of export icon. Possible values: "top-left", "top-right" (default), "bottom-left", "bottom-right"
 removeImages | true | If true export checks for and removes "tainted" images that area lodead from different domains
 delay | | General setting to delay the capturing of the chart ([skip to chapter](#delay-the-capturing-before-export))
+exportFields | [] | If set, only fields in this array will be exported ( data export only )
 exportTitles | false | Exchanges the data field names with it's dedicated title ( data export only )
+columnNames | {} | An object of key/value pairs to use as column names when exporting to data formats. `exportTitles` needs to be set for this to work as well.
 exportSelection | false | Exports the current data selection only ( data export only )
 dataDateFormat | | Format to convert date strings to date objects, uses by default charts dataDateFormat ( data export only )
 dateFormat | YYYY-MM-DD | Formats the category field in given date format ( data export only )
 keyListener | false | If true it observes the pressed keys to undo/redo the annotations
 fileListener | false | If true it observes the drag and drop feature and loads the dropped image file into the annotation
-drawing | {} | Object which holds all possible settings for the annotation mode ([skip to chaper](#annotation-settings))
+drawing | {} | Object which holds all possible settings for the annotation mode ([skip to chapter](#annotation-settings))
+overflow | true | Flag to overwrite the css attribute 'overflow' of the chart container to avoid cropping the menu on small container
 
 
 ## Configuring export menu
@@ -291,6 +294,69 @@ function takes two arguments and it needs to return a valid DOM element.
   }
 }
 ```
+
+#### Format specific options that you can override using Menu item reviver
+
+Some formats, such as CSV, have specific parameters that are used when exporting to this format. For example, default column separator for CSV is a comma. But what if you would like to be that a tab? You could use `menuReviver` for that like this:
+
+```
+"export": {
+  "enabled": true,
+  "menuReviver": function(cfg,li) {
+    if ( cfg.format == "CSV" ) {
+      cfg.delimiter = "\t";
+    }
+    return li;
+  }
+}
+```
+
+Below you will find a list of parameters that you can override for each format:
+
+**JPG**
+
+Property | Default | Available values | Description
+--------- | ------- | ---------------- | -----------
+quality |1 | 0-1 | A quality of the resulting JPG image
+multiplier | 1 | number | Set this to non-1 number to resize the resulting image by
+
+**PNG**
+
+Property | Default | Available values | Description
+--------- | ------- | ---------------- | -----------
+quality | 1 | 0-1 | A quality of the resulting JPG image
+multiplier | 1 | number | Set this to non-1 number to resize the resulting image by
+
+**PDF**
+
+Property | Default | Available values | Description
+--------- | ------- | ---------------- | -----------
+multiplier | 2 | number | Set this to non-1 number to resize the resulting image by
+
+**PRINT**
+
+Property | Default | Available values | Description
+--------- | ------- | ---------------- | -----------
+delay | 1 | number | Delay by number of seconds before triggering print
+lossless | false | true/false | Enable or disable image optimization when printing
+
+**CSV**
+
+Property | Default | Available values | Description
+--------- | ------- | ---------------- | -----------
+delimiter | "," | string | A string to use as a column delimiter
+quotes | true | true/false | Set whether to enclose strings in doublequotes
+escape | true | true/false | Set whether to escape strings
+withHeader | true | true/false | Add header row with column names
+
+**XLSX**
+
+Property | Default | Available values | Description
+--------- | ------- | ---------------- | -----------
+dateFormat | "dateObject" | "dateObject"\|"string" | Whether to export dates as dates recognisable by Excel or formatted as strings
+withHeader | true | true/false | Add header row with column names
+stringify | false | true/false | Convert all cell content to strings
+
 
 ### Menu walker
 
@@ -448,6 +514,8 @@ Following setup shows you all available settings. If you don't have the
     "mode": "pencil", // Drawing mode when entering the annotation mode "pencil", "line" and "arrow" are available
     "modes": [ "pencil" , "line", "arrow" ], // Choice of modes offered in the menu
     "arrow": "end", // position of the arrow on drawn lines; "start","middle" and "end" are available
+
+    "autoClose": true // Flag to automatically close the annotation mode after download
   }
 }
 ```
@@ -556,7 +624,9 @@ content | Array of elements which represents the content ([details](#exporting-t
 multiplier | Scale factor for the generated image
 lossless | Flag to print the actual vector graphic instead of buffered bitmap (print option only, experimental)
 delay | A numeric value to delay the capturing in seconds ([details](#delay-the-capturing-before-export))
+exportFields | [] | If set, only fields in this array will be exported ( data export only )
 exportTitles | Exchanges the data field names with it's dedicated title ( data export only )
+columnNames | An object of key/value pairs to use as column names when exporting ( data export only )
 exportSelection | Exports the current data selection only ( data export only )
 dataDateFormat | Format to convert date strings to date objects, uses by default charts dataDateFormat ( data export only )
 dateFormat | Formats the category field in given date format ( data export only )
@@ -809,6 +879,80 @@ http://www.apache.org/licenses/LICENSE-2.0
 
 
 ## Changelog
+
+### 1.4.9
+* Added: Radial gradient support on pie charts (new feature in amCharts v3.18.0)
+
+### 1.4.8
+* Fixed: Clippath positioning issue
+* Fixed: Issue removing tainted images
+* Fixed: Hashbanged url interpretation issue in IE (related to reusable svg nodes)
+
+### 1.4.7
+* Fixed: Zeroes were being exported to data formats as empty strings rather than numbers
+
+### 1.4.6
+* Fixed: Loading issue with patterns in firefox
+
+### 1.4.5
+* Fixed: Issue with the "canvas-container" on chart revalidations
+
+### 1.4.4
+* Added: Balloon text orientation
+* Fixed: Issue with multiline label positioning
+
+### 1.4.3
+* Added: `exportFields` option which is an array of fields to export in data formats (if you want to export just some fields as opposed to all fields)
+
+### 1.4.2
+* Added: `overflow` flag to overwrite the css attribute 'overflow' of the chart container
+
+### 1.4.1
+* Fixed: cropped bullets on XY charts
+
+### 1.4.0
+* Fixed: beforeCapture issue on SVG document changes
+* Added: Namespace check within globals for required third party software
+
+### 1.3.9
+* Fixed: Base tag gradient drawing issue (includes embedded hotfix for fabricjs commit #c9745ff)
+
+### 1.3.8
+* Fixed: Base tag clip path issue which draw the lines outside the plotarea
+
+### 1.3.7
+* Added: `columnNames` property, which allows overriding column names when expoerting chart data
+
+### 1.3.6
+* Fixed: Checking parseDates for category values for date interpretation
+
+### 1.3.5
+* Fixed: Scrollbar issue hiding the unselected scrollbar background area
+
+### 1.3.4
+* Fixed: Absolute legend positioning issue.
+
+### 1.3.3
+* Added: English as default language when define language does not exist
+
+### 1.3.2
+* Added: ([drawing.autoClose](#annotation-settings)) new flag to automatically close the annotation mode after download
+* Fixed: Internal pdfMake issue which prevented to generate PDFs in IE10, uses custom build until officially fixed
+
+### 1.3.1
+* Added: Timestamp date fields get converted as dates
+* Fixed: XLSX respects given dateFormat
+* Changed: JSON exports date fields as date objects by default
+
+### 1.3.0
+* Fixed: Issue hiding drawing container on "drawing.done"
+* Fixed: Legend positioning issue with charts created in a hidden container
+
+### 1.2.9
+* Fixed: Issue with missing `export.css` which showed the canvas
+* Fixed: Issue with empty menu items; adds list only with childNodes > 1
+* Fixed: Issue with hidden bullets; caused by wrong clip-paths
+* Added: Polish language file ( thanks to piernik )
 
 ### 1.2.8
 * Fixed: Issue in `gatherClassName` checking element type
